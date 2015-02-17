@@ -68,8 +68,10 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OperateVendingMachine.vb" />
     <Compile Include="CTestFixture.vb" />
     <Compile Include="CVendingMachine.vb" />
+    <Compile Include="CVendingMachineProduct.vb" />
     <Compile Include="MVendingMachine.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">

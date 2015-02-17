@@ -9,6 +9,7 @@ Public Class CTestFixture
   Public WeightInGrams As Double
 
   Public CoinName As String
+  Public ProductName As String
 
   Public VendingMachine As New CVendingMachine
 
@@ -65,6 +66,43 @@ Public Class CTestFixture
 
   Public Function testCurrentValue() As Decimal
     testCurrentValue = VendingMachine.CurrentAmount
+  End Function
+
+
+  Public Function testSelectProduct() As Boolean
+
+    Dim bFoundProduct As Boolean
+    Dim bIsProductDispensed As Boolean
+
+    Dim decProductPrice As Decimal
+
+    Dim sProductName As String
+
+    Dim aProduct(1) As Object
+
+    decProductPrice = 0
+
+    sProductName = ProductName
+    'Compare the provided Product name to the set of defined Products
+    For iProduct = 0 To ProductNamePrice.GetUpperBound(0)
+      aProduct = ProductNamePrice(iProduct)
+      sProductName = aProduct(0)
+
+      bFoundProduct = (ProductName = sProductName)
+      If (bFoundProduct) Then
+        'This Product name exists.  Use its parameters
+        decProductPrice = aProduct(1)
+        Exit For
+      End If
+    Next iProduct
+
+    If (bFoundProduct) Then
+      With VendingMachine
+        bIsProductDispensed = .DispenseProduct(sProductName)
+      End With
+    End If
+
+    testSelectProduct = bIsProductDispensed
   End Function
 
 End Class

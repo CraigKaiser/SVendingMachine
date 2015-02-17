@@ -4,9 +4,15 @@
   'Name, Size (mm), Weight (g)
   Public CoinNameSizeWeight()() As Object = {({"Penny", 19.05, 2.5}), ({"Nickel", 21.21, 5.0}), ({"Dime", 17.91, 2.268}), ({"Quarter", 24.26, 5.67}), ({"Half Dollar", 30.61, 11.34})}
 
+  'Definition of product names that could be selected from the vending machine and their parameters
+  'Name, Price (US Dollars)
+  Public ProductNamePrice()() As Object = {({"Cola", 1}), ({"Chips", 0.5}), ({"Candy", 0.65})}
+
+
   'Definition of coins that will be accepted by the vending machine:  US nickel, dime, and quarter
   'Size (mm), Weight (g), Value (US Dollars)
   Private prvValidCoinSizeWeightValue()() As Double = {({21.21, 5.0, 0.05}), ({17.91, 2.268, 0.1}), ({24.26, 5.67, 0.25})}
+
 
   'This function compares the coin parameters supplied to the set of valid coins that the vending machine will accept
   'If the parameters match a valid coin, the dollar value of that coin is returned.
