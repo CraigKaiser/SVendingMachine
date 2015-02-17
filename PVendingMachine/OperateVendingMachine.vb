@@ -33,6 +33,7 @@
 
     Dim aCoin(2) As Object
 
+
     dblSizeInMillimeters = 0
     dblWeightInGrams = 0
 
@@ -71,6 +72,7 @@
 
     Dim aProduct(1) As Object
 
+
     decProductPrice = 0
 
     'Compare the provided Product name to the set of defined Products
@@ -93,4 +95,19 @@
 
     SelectProduct = bIsProductDispensed
   End Function
+
+
+  Public Function ReturnCurrentAmount() As Boolean
+
+    Dim bCoinsReturned As Boolean
+
+
+    With prvVendingMachine
+      ReturnCurrentAmount = .ReturnCurrentAmount
+    End With
+
+    bCoinsReturned = bCoinsReturned
+
+  End Function
+
 End Class

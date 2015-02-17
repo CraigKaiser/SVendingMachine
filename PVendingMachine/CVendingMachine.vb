@@ -8,6 +8,14 @@
 
   'The current value of coins accepted by the vending machine and not applied to a purchase
   Private prvCurrentAmount As Decimal
+
+
+  Public Sub New()
+    'Initialize the vending machine
+    prvDisplayMessage = "INSERT COINS"
+  End Sub
+
+
   Public ReadOnly Property CurrentAmount() As Decimal
     Get
       Return prvCurrentAmount
@@ -138,11 +146,13 @@
           Else
             prvDisplayMessage = "PRICE " & Format(.Price, "$0.00")
           End If
+        Else
+          prvDisplayMessage = "SOLD OUT"
         End If
       End With
     Else
-      'If the product is not available, an error in the integration test product name exists
-      'No changes to the vending machine display are specified for this condition.  Exit silently
+    'If the product is not available, an error in the integration test product name exists
+    'No changes to the vending machine display are specified for this condition.  Exit silently
     End If
 
     DispenseProduct = bWasProductDispensed
@@ -150,9 +160,27 @@
   End Function
 
 
-  Public Sub New()
-    'Initialize the vending machine
-    prvDisplayMessage = "INSERT COINS"
-  End Sub
+  'This method returns the current amount to the vending machine coin return and resets the current amount to zero
+  Public Function ReturnCurrentAmount() As Boolean
+
+    Dim bHasCurrentAmount As Boolean
+    Dim bCoinsReturned As Boolean
+    Dim decCurrentAmount As Decimal
+
+
+    decCurrentAmount = prvCurrentAmount
+    bHasCurrentAmount = (decCurrentAmount > 0)
+
+    If (bHasCurrentAmount) Then
+      'TODO: This is the point where the command to physically return coins to coin return bin would occur
+      'ASSUMPTION:  All coin returns succeed
+      bCoinsReturned = True
+      prvLastReturnedAmount = decCurrentAmount
+      prvCurrentAmount = 0
+      prvDisplayMessage = "INSERT COINS" 'Note:  The Kata specifies INSERT COIN, but this is inconsistent with the prior use of INSERT COINS
+    End If
+
+    ReturnCurrentAmount = bCoinsReturned
+  End Function
 
 End Class
