@@ -16,6 +16,11 @@
   End Function
 
 
+  Public Function LastReturnedAmount() As Decimal
+    LastReturnedAmount = prvVendingMachine.LastReturnedAmount
+  End Function
+
+
   Public Function InsertCoin(ByVal Coin) As Boolean
 
     Dim bFoundCoin As Boolean

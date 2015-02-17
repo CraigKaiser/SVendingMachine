@@ -15,6 +15,23 @@
   End Property
 
 
+  'The value of the most-recently returned amount issued by the vending machine
+  Private prvLastReturnedAmount As Decimal
+  Public ReadOnly Property LastReturnedAmount() As Decimal
+    Get
+      Dim decLastReturnedAmount As Decimal
+
+      decLastReturnedAmount = prvLastReturnedAmount
+      'The last returned amount is a one-shot value that represents coins that were
+      'returned to the vending machine coin return.  Once checked, the value is set
+      'to zero to avoid the suggestion of additional returned amounts
+      prvLastReturnedAmount = 0
+
+      Return decLastReturnedAmount
+    End Get
+  End Property
+
+
   'The display text of the vending machine's interface panel
   Private prvDisplayMessage As String
   Public ReadOnly Property DisplayMessage() As String
@@ -62,9 +79,10 @@
   End Function
 
 
-  'This method dispenses a product and updates the current amount when the current amount is enough
-  'to purchase the product.  It updates the display message to indicate the product price when the
-  'current amount is insufficient to purchase the product.
+  'When the current amount is equal to or exceeds the price of the selected product, this method dispenses
+  'a product and returns any portion of the current amount that exceeds the product price to the coin return.
+  'When the current amount is insufficient to purchase the product, it updates the display message to
+  'indicate the product price.
   'It returns true when a product was dispensed
   Public Function DispenseProduct(ByVal ProductName As String) As Boolean
 
@@ -72,6 +90,10 @@
     Dim bIsProductInStock As Boolean
     Dim bAreFundsAvailable As Boolean
     Dim bWasProductDispensed As Boolean
+
+    Dim decCurrentAmount As Decimal
+    Dim decPrice As Decimal
+    Dim decReturnAmount As Decimal
 
     Dim oProduct As CVendingMachineProduct
 
@@ -95,7 +117,9 @@
 
         If (bIsProductInStock) Then
           'Some of this kind of product is present in the vending machine
-          bAreFundsAvailable = (prvCurrentAmount >= .Price)
+          decCurrentAmount = prvCurrentAmount
+          decPrice = .Price
+          bAreFundsAvailable = (decCurrentAmount >= decPrice)
 
           If (bAreFundsAvailable) Then
             'Enough coins have been inserted to purchase the product.  Dispense it.
@@ -103,7 +127,13 @@
             .SetQuantityInStock(.QuantityInStock - 1)
             bWasProductDispensed = True
             prvDisplayMessage = "THANK YOU"
-            prvCurrentAmount = 0 'Note: Per design, extra coins are kept by the vending machine at the time of purchase
+            decReturnAmount = decCurrentAmount - decPrice
+            If (decReturnAmount > 0) Then
+              'TODO: This is the point where the command to physically return coins to coin return bin would occur
+              'ASSUMPTION:  All coin returns succeed, so the current amount is always zero at this point
+              prvLastReturnedAmount = decReturnAmount
+            End If
+            prvCurrentAmount = 0
 
           Else
             prvDisplayMessage = "PRICE " & Format(.Price, "$0.00")
