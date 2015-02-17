@@ -21,7 +21,7 @@
   End Function
 
 
-  Public Function InsertCoin(ByVal Coin) As Boolean
+  Public Function InsertCoin(Coin) As Boolean
 
     Dim bFoundCoin As Boolean
     Dim bIsCoinAccepted As Boolean
@@ -108,6 +108,11 @@
 
     bCoinsReturned = bCoinsReturned
 
+  End Function
+
+
+  Public Function EmptyCoinChanger() As Boolean
+    Return prvVendingMachine.EmptyCoinChanger(0, 0, 0)
   End Function
 
 End Class

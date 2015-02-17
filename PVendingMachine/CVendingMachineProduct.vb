@@ -8,7 +8,7 @@
     End Get
   End Property
 
-  Friend Sub SetName(ByVal Name As Decimal)
+  Friend Sub SetName(Name As Decimal)
     prvName = Name
   End Sub
 
@@ -21,7 +21,7 @@
     End Get
   End Property
 
-  Friend Sub SetPrice(ByVal Price As Decimal)
+  Friend Sub SetPrice(Price As Decimal)
     prvPrice = Price
   End Sub
 
@@ -34,14 +34,14 @@
     End Get
   End Property
 
-  Friend Sub SetQuantityInStock(ByVal QuantityInStock As Long)
+  Friend Sub SetQuantityInStock(QuantityInStock As Long)
     prvQuantityInStock = QuantityInStock
   End Sub
 
 
-  Public Sub New(ByVal Name As String, _
-                 ByVal Price As Decimal, _
-                 ByVal QuantityInStock As Long)
+  Public Sub New(Name As String, _
+                 Price As Decimal, _
+                 QuantityInStock As Long)
 
     prvName = Name
     prvPrice = Price
@@ -49,8 +49,8 @@
   End Sub
 
 
-  Public Sub New(ByVal Name As String, _
-                 ByVal Price As Decimal)
+  Public Sub New(Name As String, _
+                 Price As Decimal)
 
     prvName = Name
     prvPrice = Price

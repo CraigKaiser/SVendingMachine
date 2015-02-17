@@ -5,17 +5,40 @@
   Private prvProductChips As New CVendingMachineProduct("Chips", 0.5, 1)
   Private prvProductCola As New CVendingMachineProduct("Cola", 1.0, 1)
 
-
-  'The current value of coins accepted by the vending machine and not applied to a purchase
-  Private prvCurrentAmount As Decimal
+  'Initialize the coin changer.  There are ten of each coin in the changer
+  Private prvCoinChanger As New CCoinChanger(10, 10, 10)
 
 
   Public Sub New()
     'Initialize the vending machine
-    prvDisplayMessage = "INSERT COINS"
+    ResetDisplayMessage()
   End Sub
 
 
+  'The default display message depends upon the coin content of the coin changer
+  Public Sub ResetDisplayMessage()
+
+    Dim bCanReturnAllPrices As Boolean
+    With prvCoinChanger
+      'NOTE: With a full implementation of CanReturnAmount, this section could be significantly
+      'improved to only indicate EXACT CHANGE ONLY when the specific product that was selected
+      'cannot be purchased with the current amount with the precise coins that are in the machine
+      'This implementation allows the conditions to be produced for test
+      bCanReturnAllPrices = (.CanReturnAmount(prvProductCandy.Price))
+      bCanReturnAllPrices = (bCanReturnAllPrices And .CanReturnAmount(prvProductChips.Price))
+      bCanReturnAllPrices = (bCanReturnAllPrices And .CanReturnAmount(prvProductCola.Price))
+    End With
+
+    If (bCanReturnAllPrices) Then
+      prvDisplayMessage = "INSERT COINS"
+    Else
+      prvDisplayMessage = "EXACT CHANGE ONLY"
+    End If
+  End Sub
+
+
+  'The current value of coins accepted by the vending machine and not applied to a purchase
+  Private prvCurrentAmount As Decimal
   Public ReadOnly Property CurrentAmount() As Decimal
     Get
       Return prvCurrentAmount
@@ -54,7 +77,7 @@
       'Once the message has been displayed, the next display will revert to the current amount, or
       'to the instruction to insert coins, if the current amount is zero.
       If (prvCurrentAmount = 0) Then
-        prvDisplayMessage = "INSERT COINS"
+        ResetDisplayMessage()
       Else
         prvDisplayMessage = Format(decCurrentAmount, "$0.00")
       End If
@@ -67,8 +90,8 @@
 
   'This method accepts a coin and either keeps the coin and credits the current amount with the value
   'of the coin or rejects the coin.  It returns true when a coin was accepted
-  Public Function AcceptCoin(ByVal SizeInMillimeters As Double, _
-                             ByVal WeightInGrams As Double _
+  Public Function AcceptCoin(SizeInMillimeters As Double, _
+                             WeightInGrams As Double _
                              ) As Boolean
 
     Dim bIsValidCoin As Boolean
@@ -79,6 +102,17 @@
 
     If (bIsValidCoin) Then
       prvCurrentAmount = prvCurrentAmount + decCoinValue
+      With prvCoinChanger
+        Select Case decCoinValue
+          Case 0.25
+            .AddQuarter()
+          Case 0.1
+            .AddDime()
+          Case 0.05
+            .AddNickel()
+        End Select
+      End With
+
       prvDisplayMessage = Format(prvCurrentAmount, "$0.00")
     End If
 
@@ -92,11 +126,12 @@
   'When the current amount is insufficient to purchase the product, it updates the display message to
   'indicate the product price.
   'It returns true when a product was dispensed
-  Public Function DispenseProduct(ByVal ProductName As String) As Boolean
+  Public Function DispenseProduct(ProductName As String) As Boolean
 
     Dim bIsProductAvailable As Boolean
     Dim bIsProductInStock As Boolean
     Dim bAreFundsAvailable As Boolean
+    Dim bCanRemainingAmountBeReturned As Boolean
     Dim bWasProductDispensed As Boolean
 
     Dim decCurrentAmount As Decimal
@@ -130,19 +165,29 @@
           bAreFundsAvailable = (decCurrentAmount >= decPrice)
 
           If (bAreFundsAvailable) Then
-            'Enough coins have been inserted to purchase the product.  Dispense it.
-            'TODO: This is the point where the command to physically dispense the product would occur
-            .SetQuantityInStock(.QuantityInStock - 1)
-            bWasProductDispensed = True
-            prvDisplayMessage = "THANK YOU"
             decReturnAmount = decCurrentAmount - decPrice
-            If (decReturnAmount > 0) Then
-              'TODO: This is the point where the command to physically return coins to coin return bin would occur
-              'ASSUMPTION:  All coin returns succeed, so the current amount is always zero at this point
-              prvLastReturnedAmount = decReturnAmount
-            End If
-            prvCurrentAmount = 0
+            With prvCoinChanger
+              bCanRemainingAmountBeReturned = .CanReturnAmount(decReturnAmount)
+            End With
 
+            If (bCanRemainingAmountBeReturned) Then
+              'Enough coins have been inserted to purchase the product and the change can be returned.
+              'Dispense the product.
+              'TODO: This is the point where the command to physically dispense the product would occur
+              .SetQuantityInStock(.QuantityInStock - 1)
+              bWasProductDispensed = True
+              prvDisplayMessage = "THANK YOU"
+              If (decReturnAmount > 0) Then
+                With prvCoinChanger
+                  .ReturnAmount(decReturnAmount)
+                  prvLastReturnedAmount = decReturnAmount
+                End With
+              End If
+              'ASSUMPTION:  All coin returns succeed, so the current amount is always zero at this point
+              prvCurrentAmount = 0
+            Else
+              prvDisplayMessage = "EXACT CHANGE ONLY"
+            End If
           Else
             prvDisplayMessage = "PRICE " & Format(.Price, "$0.00")
           End If
@@ -151,8 +196,8 @@
         End If
       End With
     Else
-    'If the product is not available, an error in the integration test product name exists
-    'No changes to the vending machine display are specified for this condition.  Exit silently
+      'If the product is not available, an error in the integration test product name exists
+      'No changes to the vending machine display are specified for this condition.  Exit silently
     End If
 
     DispenseProduct = bWasProductDispensed
@@ -165,22 +210,50 @@
 
     Dim bHasCurrentAmount As Boolean
     Dim bCoinsReturned As Boolean
-    Dim decCurrentAmount As Decimal
+    Dim bCanReturnAmount As Boolean
 
+    Dim decCurrentAmount As Decimal
+    Dim decReturnedAmount As Decimal
 
     decCurrentAmount = prvCurrentAmount
     bHasCurrentAmount = (decCurrentAmount > 0)
 
+    decReturnedAmount = 0
+
     If (bHasCurrentAmount) Then
-      'TODO: This is the point where the command to physically return coins to coin return bin would occur
-      'ASSUMPTION:  All coin returns succeed
-      bCoinsReturned = True
-      prvLastReturnedAmount = decCurrentAmount
-      prvCurrentAmount = 0
-      prvDisplayMessage = "INSERT COINS" 'Note:  The Kata specifies INSERT COIN, but this is inconsistent with the prior use of INSERT COINS
+      With prvCoinChanger
+        bCanReturnAmount = .CanReturnAmount(decCurrentAmount)
+        If (bCanReturnAmount) Then
+          bCoinsReturned = .ReturnAmount(decCurrentAmount)
+          If (bCoinsReturned) Then
+            decReturnedAmount = decCurrentAmount
+          End If
+          prvCurrentAmount = 0
+          ResetDisplayMessage() 'Note:  The Kata specifies INSERT COIN, but this is inconsistent with the prior use of INSERT COINS
+        Else
+          prvDisplayMessage = "ERROR: CANNOT RETURN AMOUNT"
+        End If
+      End With
     End If
 
+    prvLastReturnedAmount = decReturnedAmount
+
     ReturnCurrentAmount = bCoinsReturned
+
+  End Function
+
+
+  Public Function EmptyCoinChanger(RemainingQuarterCount As Long, _
+                                   RemainingDimeCount As Long, _
+                                   RemainingNickelCount As Long _
+                                   ) As Boolean
+
+    Dim bCoinChangerEmptied As Boolean
+
+    bCoinChangerEmptied = prvCoinChanger.EmptyCoinChanger(RemainingQuarterCount, RemainingDimeCount, RemainingNickelCount)
+    ResetDisplayMessage()
+    Return bCoinChangerEmptied
+
   End Function
 
 End Class

@@ -18,8 +18,8 @@
   'If the parameters match a valid coin, the dollar value of that coin is returned.
   'Otherwise, zero is returned (the coin should not be accepted)
 
-  Public Function IdentifyCoinValueInDollars(ByVal SizeInMillimeters As Double, _
-                                             ByVal WeightInGrams As Double _
+  Public Function IdentifyCoinValueInDollars(SizeInMillimeters As Double, _
+                                             WeightInGrams As Double _
                                              ) As Decimal
 
     Dim dblSizeInMillimeters As Double
